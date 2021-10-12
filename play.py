@@ -1,44 +1,54 @@
-import cv2
 import numpy as np
-from matplotlib import pyplot as plt
+import cv2
+cap = cv2.VideoCapture('test.mp4')
 
-filename = 'com.jpg'
-filename2 = 'comcom.jpg'
-size = (4032//6, 3024//6)
-img0 = cv2.imread(filename2)
-img = cv2.imread(filename)
-# print(img.shape)
-img = cv2.resize(img, size) 
-img2 = cv2.resize(img0, size)
+W = 1920//2
+L = 1080//2
 
+# params for ShiTomasi corner detection
+feature_params = dict( maxCorners = 5000,
+qualityLevel = 0.3,
+minDistance = 3,
+blockSize = 7 )
+# Parameters for lucas kanade optical flow
+lk_params = dict( winSize = (15,15),
+maxLevel = 2,
+criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03))
+# Create some random colors
+color = np.random.randint(0,255,(100,3))
+# Take first frame and find corners in it
+ret, old_frame = cap.read()
+old_frame = cv2.resize(old_frame, (W,L))
+old_gray = cv2.cvtColor(old_frame, cv2.COLOR_BGR2GRAY)
 
-# gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
-# gray = np.float32(gray)
-
-orb = cv2.ORB_create()
-
-kp1, des1 = orb.detectAndCompute(img0,None)
-kp2, des2 = orb.detectAndCompute(img,None)
-
-bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck = True)
-
-matches = bf.match(des1,des2)
-
-matches = sorted(matches, key = lambda x:x.distance)
-
-img3 = cv2.drawMatches(img0,kp1,img,kp2,matches[0:10], outImg=np.array([]), flags=2)
-plt.imshow(img3), plt.show()
-# kp = orb.detect(img)
-# #result is dilated for marking the corners, not important
-# kp, des = orb.compute(img, kp)
-# print(kp, des)
-
-
-# img2 = cv2.drawKeypoints(img,kp, outImage=np.array([]), color=(0,255,0), flags=0)
-# plt.imshow(img2),plt.show()
-
-# Threshold for an optimal value, it may vary depending on the image.
-# img[dst>0.01*dst.max()]=[0,0,255]
-# cv2.imshow('dst',img)
-# if cv2.waitKey(0) & 0xff == 27:
-#     cv2.destroyAllWindows()
+p0 = cv2.goodFeaturesToTrack(old_gray, mask = None, **feature_params)
+# Create a mask image for drawing purposes
+mask = np.zeros_like(old_frame)
+while(1):
+    ret,frame = cap.read()
+    frame = cv2.resize(frame, (W,L))
+    frame_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    
+    # calculate optical flow
+    p1, st, err = cv2.calcOpticalFlowPyrLK(old_gray, frame_gray, p0, None, **lk_params)
+    # Select good points
+    good_new = p1[st==1]
+    good_old = p0[st==1]
+    # draw the tracks
+    for i,(new,old) in enumerate(zip(good_new,good_old)):
+        a,b = new.ravel()
+        # print(a,b)
+        c,d = old.ravel()
+        print(c,d)
+        mask = cv2.line(mask, (int(a),int(b)),(int(c),int(d)), (0,255,0), 2)
+        frame = cv2.circle(frame,(int(a),int(b)), radius = 5, color =(0,255,0), thickness=-1)
+    img = cv2.add(frame,mask)
+    cv2.imshow('frame',img)
+    k = cv2.waitKey(30) & 0xff
+    if k == 27:
+        break
+    # Now update the previous frame and previous points
+    old_gray = frame_gray.copy()
+    p0 = good_new.reshape(-1,1,2)
+cv2.destroyAllWindows()
+cap.release()

@@ -11,7 +11,7 @@ def extract_features(img):
     orb = cv2.ORB_create()
     
     #find all the features in the frame using (Shi-Tomasi Corner Detector)
-    features = cv2.goodFeaturesToTrack(img, maxCorners=2000, qualityLevel=0.01, minDistance=5)
+    features = cv2.goodFeaturesToTrack(img, maxCorners=250, qualityLevel=0.01, minDistance=5)
     features = features.astype(np.uint16)
     
     # print(features)
@@ -25,7 +25,7 @@ def extract_features(img):
     draw = cv2.drawKeypoints(img, kps, np.array([]), (0,255,0))
     #return arrays for keypoints and associated descriptors
     cv2.imshow('frame',draw)
-    return np.array([(kp.pt[0], kp.pt[1]) for kp in kps]).astype(np.uint16), des
+    # return np.array([(kp.pt[0], kp.pt[1]) for kp in kps]).astype(np.uint16), des
     #np.array([(kp.pt[0], kp.pt[1]) for kp in kps]).astype(np.uint16)
     
 def track_features(old_des, des):

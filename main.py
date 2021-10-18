@@ -1,55 +1,15 @@
 import numpy as np
 import cv2
+import Visual
 from numpy import ma, uint8
 from matplotlib import pyplot as plt
 from numpy.core.fromnumeric import size
 
-def extract_features(img):
-    #ORB is a fusion of FAST keypoint detector and BRIEF descriptor
-    #ORB is a good choice in low-powerdevices for panorama stitching etc.
-
-    #create an instance of ORB(Oriented FAST and Rotated BRIEF)
-    orb = cv2.ORB_create()
-    
-    #find all the features in the frame using (Shi-Tomasi Corner Detector)
-    features = cv2.goodFeaturesToTrack(img, maxCorners=5000, qualityLevel=0.01, minDistance=5)
-    features = features.astype(np.uint16)
-    
-    # print(features)
-    #now from the features determine the key points
-    #size is key
-    # point diameter
-    kps = [cv2.KeyPoint(x=f[0][0], y=f[0][1], size=20) for f in features]
-   
-    #compute descriptors from keypoints (and possibly update keypoints)
-    kps, des = orb.compute(img, kps)
-    
-    #return arrays for keypoints and associated descriptors
-    return np.array([(kp.pt[0], kp.pt[1]) for kp in kps]).astype(np.uint16), des
-    #np.array([(kp.pt[0], kp.pt[1]) for kp in kps]).astype(np.uint16)
-
-def track_features(old_des, des):
-    bf = cv2.BFMatcher(cv2.NORM_HAMMING, True)
-    matches = bf.match(old_des, des)
-    old_idx = []
-    new_idx = []
-    for m in matches:    
-        # print(m.trainIdx, m.queryIdx, m.distance)
-        old_idx.append(m.trainIdx)
-        new_idx.append(m.queryIdx)
-    # good = []
-    # for m,n in matches:
-    #     if m.distance < 0.75*n.distance:
-    #         good.append([m])
-        
-    # matches = sorted(matches, key = lambda x:x.distance)
-
-    return old_idx, new_idx
 
 W = 1920//2
 L = 1080//2
 
-cap = cv2.VideoCapture('test.mp4')
+cap = cv2.VideoCapture('test2.mp4')
 
 # Capture first frame
 ret, old_frame = cap.read()
@@ -59,7 +19,7 @@ gray_frame = cv2.cvtColor(old_frame, cv2.COLOR_BGR2GRAY)
 gray_frame = cv2.resize(gray_frame, (W,L))
 old_frame = cv2.resize(old_frame, (W,L))
 # Extract key-points and descriptors from frame    
-old_kps, old_des = extract_features(gray_frame)
+old_kps, old_des = Visual.extract_features(gray_frame)
 
 
 while(True):
@@ -72,8 +32,8 @@ while(True):
     frame = cv2.resize(frame, (W,L))
     
     # Extract key-points and descriptors from frame    
-    kps, des = extract_features(gray_frame)
-    old_idx, new_idx = track_features(old_des, des)
+    kps, des = Visual.extract_features(gray_frame)
+    old_idx, new_idx = Visual.track_features(old_des, des)
     # print(old_idx, new_idx)
     # print(kps.shape, old_kps.shape, old_idx )
     

@@ -1,58 +1,66 @@
-import numpy as np
 import cv2
-from numpy import ma, uint8
+import numpy as np
 from matplotlib import pyplot as plt
-from numpy.core.fromnumeric import size
+img1 = cv2.imread('com.jpg',0) #queryimage # left image
+# img1 = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
+img2 = cv2.imread('comcom.jpg',0) #trainimage # right image
+# img1 = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
 
-W = 1920//2
-L = 1080//2
+orb = cv2.ORB_create()
+# find the keypoints and descriptors with SIFT
+kp1, des1 = orb.detectAndCompute(img1,None)
+kp2, des2 = orb.detectAndCompute(img2,None)
+# FLANN parameters
+FLANN_INDEX_LSH = 6
+index_params= dict(algorithm = FLANN_INDEX_LSH,
+                   table_number = 6, # 12
+                   key_size = 12,     # 20
+                   multi_probe_level = 1) #2
+search_params = dict(checks=50)   
+flann = cv2.FlannBasedMatcher(index_params,search_params)
+matches = flann.knnMatch(des1,des2,k=2)
+good = []
+pts1 = []
+pts2 = []
+# ratio test as per Lowe's paper
+for i,(m,n) in enumerate(matches):
+    if m.distance < 0.8*n.distance:
+        good.append(m)
+        pts2.append(kp2[m.trainIdx].pt)
+        pts1.append(kp1[m.queryIdx].pt)
+pts1 = np.int32(pts1)
+pts2 = np.int32(pts2)
+print(pts1.shape, pts2.shape)
+F, mask = cv2.findFundamentalMat(pts1,pts2,cv2.FM_LMEDS)
+# We select only inlier points
+pts1 = pts1[mask.ravel()==1]
+pts2 = pts2[mask.ravel()==1]
 
-cap = cv2.VideoCapture('test.mp4')
+def drawlines(img1,img2,lines,pts1,pts2):
+    ''' img1 - image on which we draw the epilines for the points in img2
+    lines - corresponding epilines '''
+    r,c = img1.shape
+    img1 = cv2.cvtColor(img1,cv2.COLOR_GRAY2BGR)
+    img2 = cv2.cvtColor(img2,cv2.COLOR_GRAY2BGR)
+    for r,pt1,pt2 in zip(lines,pts1,pts2):
+        color = tuple(np.random.randint(0,255,3).tolist())
+        x0,y0 = map(int, [0, -r[2]/r[1] ])
+        x1,y1 = map(int, [c, -(r[2]+r[0]*c)/r[1] ])
+        img1 = cv2.line(img1, (x0,y0), (x1,y1), color,1)
+        img1 = cv2.circle(img1,tuple(pt1),5,color,-1)
+        img2 = cv2.circle(img2,tuple(pt2),5,color,-1)
+    return img1,img2
 
-
-#takes in a frame and returns details regarding the frame
-def extract_features(img):
-    #ORB is a fusion of FAST keypoint detector and BRIEF descriptor
-    #ORB is a good choice in low-powerdevices for panorama stitching etc.
-
-    #create an instance of ORB(Oriented FAST and Rotated BRIEF)
-    orb = cv2.ORB_create()
-    
-    #find all the features in the frame using (Shi-Tomasi Corner Detector)
-    features = cv2.goodFeaturesToTrack(img, maxCorners=5000, qualityLevel=0.01, minDistance=5)
-    #change type for features to usigned int 16
-    features = features.astype(np.uint16)
-    
-    #now from the features determine the key points
-    #size is keypoint diameter
-    kps = [cv2.KeyPoint(x=f[0][0], y=f[0][1], size=20) for f in features]
-    
-    #compute descriptors from keypoints (and possibly update keypoints)
-    kps, des = orb.compute(img, kps)
-    
-    #return arrays for keypoints and associated descriptors
-    return kps, des
-    #np.array([(kp.pt[0], kp.pt[1]) for kp in kps])
-
-# def match_frames(frame1, frame2):
-#         bf = cv2.BFMatcher()
-while(True):
-    # Capture frame-by-frame
-    ret, frame = cap.read()
-    # Our operations on the frame come here
-    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    frame = cv2.resize(frame, (W,L))
-    # frame = cv2.resize(frame, (W,L))
-    
-    kps, des = extract_features(frame)
-   
-    frame = cv2.drawKeypoints(frame, kps , outImage=np.array([]), color=(0,255,0))
-        # print(x,y)
-    cv2.imshow('frame',frame)
-
-
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
-# When everything done, release the capture
-cap.release()
-cv2.destroyAllWindows()
+# Find epilines corresponding to points in right image (second image) and
+# drawing its lines on left image
+lines1 = cv2.computeCorrespondEpilines(pts2.reshape(-1,1,2), 2,F)
+lines1 = lines1.reshape(-1,3)
+img5,img6 = drawlines(img1,img2,lines1,pts1,pts2)
+# Find epilines corresponding to points in left image (first image) and
+# drawing its lines on right image
+lines2 = cv2.computeCorrespondEpilines(pts1.reshape(-1,1,2), 1,F)
+lines2 = lines2.reshape(-1,3)
+img3,img4 = drawlines(img2,img1,lines2,pts2,pts1)
+plt.subplot(121),plt.imshow(img5)
+plt.subplot(122),plt.imshow(img3)
+plt.show()

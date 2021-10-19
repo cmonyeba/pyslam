@@ -42,7 +42,7 @@ class Slam:
             # ratio test as per Lowe's paper
             for pair in matches:
                 if len(pair) == 2:
-                    if pair[0].distance < 0.7*pair[1].distance:
+                    if pair[0].distance < 0.9*pair[1].distance:
                         # print(self.old_kps[pair[0].queryIdx], kps[pair[0].trainIdx])
                         pts1.append(self.old_kps[pair[0].queryIdx])
                         pts2.append(kps[pair[0].trainIdx])
@@ -79,10 +79,10 @@ class Slam:
         #np.array([(kp.pt[0], kp.pt[1]) for kp in kps]).astype(np.uint16)
         
     def calculate_coords(self, pts1, pts2):
-        x = 800/2
-        y = 600/2
+        x = 2563/2
+        y = 1440/2
         
-        scale = 10
+        scale = 5
         # focal lengths (assumes that the field of view is 60)
         fov = 60 * (math.pi / 180)
         f_x = x / math.tan(fov / 2)
@@ -92,19 +92,26 @@ class Slam:
         K = np.array([[f_x, 0, x],
                         [0, f_y, y],
                         [0, 0, 1]])
+        
+        #fundamental matrix between the two points
         F, mask = cv2.findFundamentalMat(np.asarray(pts1), np.asarray(pts2), cv2.FM_8POINT)
         # print(F)
-        points, R, t, mask = cv2.recoverPose(F, np.asmatrix(pts1), np.asmatrix(pts2), K, 500)
+        
+        #this is just getting the extrinsic matrix (returns the rotation matrix and translation vector)
+        points, R, t, mask = cv2.recoverPose(F, np.asmatrix(pts1), np.asmatrix(pts2), K)
+        # print(R)
         R = np.asmatrix(R).I
         
         self.cam_xyz.append([self.cam_position[0] + t[0], self.cam_position[1] + t[1], self.cam_position[2] + t[2]])
         
+        #the extrinsic matrix
         C = np.hstack((R,t))
         
-        for i in range(len(self.old_kps)):
-            pts2d = np.asmatrix([self.old_kps[i][0], self.old_kps[i][1], 1]).T
-            # print(pts2d)
+        for i in range(len(pts2)):
+            pts2d = np.asmatrix([pts2[i][0], pts2[i][1], 1]).T
+            #CAMERA MATRIX
             P = np.asmatrix(K) * np.asmatrix(C)
+            #camera matrix with 2d points find 3d points
             pts3d = np.asmatrix(P).I * pts2d
             # print(pts3d)
             self.kps_xyz.append([pts3d[0][0] * scale + self.cam_position[0],

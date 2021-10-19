@@ -7,8 +7,8 @@ from matplotlib import pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
 
-L = 1080//2
-W = 1920//2
+L = 1440//2
+W = 2562//2
 
 #capture video in cap
 cap = cv2.VideoCapture('test2.mp4')
@@ -28,7 +28,7 @@ while(cap.isOpened()):
     if ret:
         #gray-scale frame and resize
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        frame = cv2.resize(frame, (800,600))
+        frame = cv2.resize(frame, (W,L))
         
         Visual.extract_features(frame)
         

@@ -1,0 +1,27 @@
+PROJECTION MATRIX (ALSO KNOWN AS THE CAMERA MATRIX I BELIEVE)
+    It is a 3x4 matrix that takes 3D coordinates and is able to project them onto the 2D plane of the camera
+    The projection matrix (P) is the dot product of the intrinsic and extirinsic matrix of the camera.
+
+INTRINSIC MATRIX
+    It is an 3x3 matrix that descirbe the geometric property of the camera
+    The intrinsic matrix (K) is information about the camera such as focal length and optical center
+
+    K = [[f_x s x_0][0 f_y y_0][0 0 1]]
+
+
+    Focal length is the distance from the pinhole to the image plane. It is measured in pixels.
+
+    f_x and f_y ideally should be the same but may differ in practice due to flaws in camera/sensor/image
+
+    x_0 and y_0 are known as Principle Point Offset. 
+
+    The camera's 'principle axis' is the line perpendicular to the image plane and passes though the pinhole.
+    The point where the 'principle axis' passes through the image plane is know as the 'principle point'.
+
+    The Principle Point Offset is the location of the principle point in relation to the image plane origin which can
+    be assumed to be (0,0) or bottom left of the image.
+
+    Axis Skew is s.
+    
+EXTRINSIC MATRIX
+    The extirinsic matrix (R|t) is a 3x3 Rotation matrix (R) stacked with a 3x1 Translation Vector (t)

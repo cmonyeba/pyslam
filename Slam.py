@@ -82,7 +82,7 @@ class Slam:
         x = 2563/2
         y = 1440/2
         
-        scale = 5
+        scale = 15
         # focal lengths (assumes that the field of view is 60)
         fov = 60 * (math.pi / 180)
         f_x = x / math.tan(fov / 2)
@@ -96,6 +96,11 @@ class Slam:
         #fundamental matrix between the two points
         F, mask = cv2.findFundamentalMat(np.asarray(pts1), np.asarray(pts2), cv2.FM_8POINT)
         # print(F)
+        
+        #intrinsic and extrinsic 
+        #ethzurich
+        #maplab, pangolin
+        #kalman filter particle filter gps real ground truth
         
         #this is just getting the extrinsic matrix (returns the rotation matrix and translation vector)
         points, R, t, mask = cv2.recoverPose(F, np.asmatrix(pts1), np.asmatrix(pts2), K)
@@ -112,7 +117,7 @@ class Slam:
             #CAMERA MATRIX
             P = np.asmatrix(K) * np.asmatrix(C)
             #camera matrix with 2d points find 3d points
-            pts3d = np.asmatrix(P).I * pts2d
+            pts3d = np.asmatrix(P).I * pts2d  
             # print(pts3d)
             self.kps_xyz.append([pts3d[0][0] * scale + self.cam_position[0],
                         pts3d[1][0] * scale + self.cam_position[1],

@@ -7,8 +7,8 @@ from matplotlib import pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
 
-L = 1080//2
-W = 1920//2
+W = 1242
+L = 375
 
 #capture video in cap
 cap = cv2.VideoCapture('drive.mp4')

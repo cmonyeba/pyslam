@@ -29,7 +29,7 @@ while(cap.isOpened()):
         #gray-scale frame and resize
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         frame = cv2.resize(frame, (W,L))
-        
+        print(frame)
         Visual.extract_features(frame)
         
         slam.runSlam(frame)

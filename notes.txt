@@ -1,8 +1,8 @@
-PROJECTION MATRIX (ALSO KNOWN AS THE CAMERA MATRIX I BELIEVE)
+PROJECTION MATRIX (EDIT: camera matrix or (camera) projection matrix)
     It is a 3x4 matrix that takes 3D coordinates and is able to project them onto the 2D plane of the camera
     The projection matrix (P) is the dot product of the intrinsic and extirinsic matrix of the camera.
 
-INTRINSIC MATRIX
+INTRINSIC MATRIX ((ALSO KNOWN AS THE CAMERA MATRIX I BELIEVE))
     It is an 3x3 matrix that descirbe the geometric property of the camera
     The intrinsic matrix (K) is information about the camera such as focal length and optical center
 
@@ -25,3 +25,17 @@ INTRINSIC MATRIX
     
 EXTRINSIC MATRIX
     The extirinsic matrix (R|t) is a 3x3 Rotation matrix (R) stacked with a 3x1 Translation Vector (t)
+
+TRIANGULATE 
+    Known Projection Matrix of Camera 1 and 2 and corresponding matching coordinates y_1 y_2
+
+    Create a Homogeneous Linear Equation and solve for the unknown vector (3D point) using SVD (Singular Value Decomposition)
+
+
+
+
+############### IDEAS ################
+- Finding the Rotation matrix and Translation vector at each postion will give the pose.
+- Extrinsic matrix is useful for knowing orentation of camera to calculate 3D points from.
+- Intrinsic matrix doesnt change. Set attributes from the camera. Will affect Projection matrix.
+

@@ -24,7 +24,7 @@ def extract_features(img):
     kps, des = orb.compute(img, kps)
     draw = cv2.drawKeypoints(img, kps, np.array([]), (0,255,0))
     #return arrays for keypoints and associated descriptors
-    cv2.imshow('frame',draw)
+    cv2.imshow('frame', draw)
     # return np.array([(kp.pt[0], kp.pt[1]) for kp in kps]).astype(np.uint16), des
     #np.array([(kp.pt[0], kp.pt[1]) for kp in kps]).astype(np.uint16)
     

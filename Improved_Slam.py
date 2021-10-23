@@ -4,6 +4,7 @@ import math
 from matplotlib import pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import pykitti
+from function import triangulate, cvtPoint
 from frame import KeyFrame, matchFrames
 from map import Map
 
@@ -19,7 +20,7 @@ dataset = pykitti.raw(basedir, date, drive)
 
 class Slam:
     def __init__(self, W, H, K):
-        self.cam_pos = [0,0,0]
+        self.cam_position = [0,0,0]
         self.cam_xyz = []
         self.kps_xyz = []
         self.map = Map()
@@ -57,36 +58,25 @@ class Slam:
         P2 = np.dot(f2.K, np.array(f2.pose)[:3])
         
         #u = PX
-        A = np.eye(4)
         
-        pts1 = self.cvtPoint(np.array(f1.pts))
-        pts2 = self.cvtPoint(np.array(f2.pts))
-        Point = np.zeros((pts1.shape[0], 4))
+        
+        pts1 = cvtPoint(np.array(f1.pts))
+        pts2 = cvtPoint(np.array(f2.pts))
+       
 
-        for i in range(len(pts1)):
-            
-            temp1 = np.cross(pts1[i], P1.T)
-            temp2 = np.cross(pts2[i], P2.T)
-            te1 = temp1.T
-            te2 = temp2.T
-            A[:2, :4] = te1[:2]
-            A[2:4, :4] = te2[:2]
-            _, _, V = np.linalg.svd(A)
-            Point[i] = V[3]
-        Point = Point / Point[:, 3:]
+        pts4d = triangulate(P1, P2, pts1, pts2)
+        pts4d = pts4d / pts4d[:, 3:]
         
-        # pts4d = cv2.triangulatePoints(P1, P2, np.array(f1.pts), np.array(f2.pts))
-        # print(pts4d)
-        for pt in Point:
-            print(pt)
-            self.kps_xyz.append(pt)
-    def cvtPoint(self, pts):
-        ret = []
-        for pt in pts:
-            temp = np.zeros(3)
-            temp[:2] = pt
-            temp[2] = 1
-            ret.append(temp)
-        return np.array(ret)
-    
- 
+        for pt in pts4d:
+            # print(pt)
+            # self.kps_xyz.append(pt)
+            self.kps_xyz.append([pt[0] * self.scale + self.cam_position[0],
+                        pt[1] * self.scale + self.cam_position[1],
+                        pt[2] * self.scale + self.cam_position[2]])
+
+        # print(self.kps_xyz)
+        self.cam_xyz.append([self.cam_position[0] + f1.pose[:3, 3][0], self.cam_position[1] + f1.pose[:3, 3][1], self.cam_position[2] + f1.pose[:3, 3][2]])
+
+        
+
+        self.cam_position = [self.cam_position[0] + f1.pose[:3, 3][0], self.cam_position[1] + f1.pose[:3, 3][1], self.cam_position[2] + f1.pose[:3, 3][2]]

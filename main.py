@@ -1,6 +1,6 @@
 import numpy as np
 import cv2
-import Slam
+import Improved_Slam
 import math
 import Visual
 from matplotlib import pyplot as plt
@@ -11,10 +11,14 @@ L = 1440//2
 W = 2562//2
 
 #capture video in cap
-cap = cv2.VideoCapture('test2.mp4')
+cap = cv2.VideoCapture('images/test2.mp4')
 
 #create an SLAM instance
-slam = Slam.Slam()
+W = 2562
+H = 1440
+F = 500
+K = np.array([[F,0,W//2],[0,F,H//2],[0,0,1]])
+slam = Improved_Slam.Slam(W, H, K)
 
 # slam.runSlam(old_frame)
 
@@ -28,11 +32,11 @@ while(cap.isOpened()):
     if ret:
         #gray-scale frame and resize
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        frame = cv2.resize(frame, (W,L))
-        print(frame)
+        # print(frame.shape)
+        # print(frame)
         Visual.extract_features(frame)
         
-        slam.runSlam(frame)
+        slam.processFrame(frame)
     
 
         if cv2.waitKey(1) & 0xFF == ord('q'):

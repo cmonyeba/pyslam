@@ -1,6 +1,6 @@
 import numpy as np
 import cv2
-import Improved_Slam
+import slam
 import math
 import Visual
 from matplotlib import pyplot as plt
@@ -18,7 +18,7 @@ W = 2562
 H = 1440
 F = 500
 K = np.array([[F,0,W//2],[0,F,H//2],[0,0,1]])
-slam = Improved_Slam.Slam(W, H, K)
+slam = slam.Slam(W, H, K)
 
 # slam.runSlam(old_frame)
 

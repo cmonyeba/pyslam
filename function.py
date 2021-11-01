@@ -37,6 +37,12 @@ def cvtPoint(pts):
         ret.append(temp)
     return np.array(ret)
 
+def poseRt(R, t):
+  ret = np.eye(4)
+  ret[:3, :3] = R
+  ret[:3, 3] = t
+  return ret
+
 def calculateRotationMatrix(y, p, r):
     R_yaw = np.matrix([[np.cos(y), -np.sin(y), 0], [np.sin(y), np.cos(y), 0], [0, 0, 1]])
     R_pitch = np.matrix([[np.cos(p), 0, np.sin(p)], [0, 1, 0], [-np.sin(p), 0, np.cos(p)]])

@@ -3,6 +3,8 @@ import pangolin
 import OpenGL.GL as gl
 import numpy as np
 
+#DISPLAY CODE FROM PANGOLIN DOCS
+
 class Display3D(object):
   def __init__(self):
     self.state = None
@@ -21,8 +23,8 @@ class Display3D(object):
     gl.glEnable(gl.GL_DEPTH_TEST)
 
     self.scam = pangolin.OpenGlRenderState(
-      pangolin.ProjectionMatrix(w, h, 420, 420, w//2, h//2, 0.2, 10000),
-      pangolin.ModelViewLookAt(0, -10, -8,
+      pangolin.ProjectionMatrix(w, h, 420, 420, w//2, h//2, 0.1, 100),
+      pangolin.ModelViewLookAt(0, -10, -20,
                                0, 0, 0,
                                0, -1, 0))
     self.handler = pangolin.Handler3D(self.scam)
@@ -32,8 +34,8 @@ class Display3D(object):
     self.dcam.SetBounds(0.0, 1.0, 0.0, 1.0, w/h)
     self.dcam.SetHandler(self.handler)
     # hack to avoid small Pangolin, no idea why it's *2
-    self.dcam.Resize(pangolin.Viewport(0,0,w*2,h*2))
-    self.dcam.Activate()
+    # self.dcam.Resize(pangolin.Viewport(0,0,w*2,h*2))
+    # self.dcam.Activate()
 
 
   def viewer_refresh(self, q):
@@ -47,7 +49,7 @@ class Display3D(object):
     if self.state is not None:
       if self.state[0].shape[0] >= 2:
         # draw poses
-        gl.glColor3f(0.0, 1.0, 0.0)
+        gl.glColor3f(0.0, 1.0, 1.0)
         pangolin.DrawCameras(self.state[0][:-1])
 
       if self.state[0].shape[0] >= 1:
@@ -57,8 +59,8 @@ class Display3D(object):
 
       if self.state[1].shape[0] != 0:
         # draw keypoints
-        gl.glPointSize(5)
-        gl.glColor3f(1.0, 0.0, 0.0)
+        gl.glPointSize(2)
+        gl.glColor3f(1.0, 1.0, 0.0)
         pangolin.DrawPoints(self.state[1], self.state[2])
 
     pangolin.FinishFrame()

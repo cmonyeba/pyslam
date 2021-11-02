@@ -59,7 +59,7 @@ class Display3D(object):
 
       if self.state[1].shape[0] != 0:
         # draw keypoints
-        gl.glPointSize(2)
+        gl.glPointSize(1.5)
         gl.glColor3f(1.0, 1.0, 0.0)
         pangolin.DrawPoints(self.state[1], self.state[2])
 

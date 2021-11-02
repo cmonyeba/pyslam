@@ -1,4 +1,4 @@
-from function import poseRt
+from function import poseRt, calc_pose_matrices
 import cv2
 import numpy as np
 from skimage.transform import FundamentalMatrixTransform
@@ -9,6 +9,8 @@ from skimage.measure import ransac
 def extractFeatures(frame):
         #ORB (Oriented FAST and Rotated BRIEF) is a fusion of FAST keypoint detector and BRIEF descriptor
         #Create an instance
+       
+        
         orb = cv2.ORB_create()
         #Find Features (Shi-Tomasi Corner Detector)
         features = cv2.goodFeaturesToTrack(frame, maxCorners=1000, qualityLevel=0.01, minDistance=7)
@@ -61,22 +63,6 @@ def matchFrames(f1, f2):
     # print('FEATUREEXTRACTOR: matches: {}'.format(len(ret)))
     return idx1[inliers], idx2[inliers], Rt
 
-def calc_pose_matrices(model):
-    W = np.mat([[0, -1, 0], [1, 0, 0], [0, 0, 1]], dtype=np.float)
-    U, w, V = np.linalg.svd(model.params)
-
-    if np.linalg.det(U) < 0:
-        U *= -1.0
-
-    if np.linalg.det(V) < 0:
-        V *= -1.0
-
-    R = np.dot(np.dot(U, W), V)
-
-    if np.sum(R.diagonal()) < 0:
-        R = np.dot(np.dot(U, W.T), V)
-    t = U[:, 2]
-    return poseRt(R, t)
 
 class KeyFrame():
     def __init__(self, frame, map, K):

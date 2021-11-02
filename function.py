@@ -43,6 +43,24 @@ def poseRt(R, t):
   ret[:3, 3] = t
   return ret
 
+
+def calc_pose_matrices(model):
+    W = np.mat([[0, -1, 0], [1, 0, 0], [0, 0, 1]], dtype=np.float)
+    U, w, V = np.linalg.svd(model.params)
+
+    if np.linalg.det(U) < 0:
+        U *= -1.0
+
+    if np.linalg.det(V) < 0:
+        V *= -1.0
+
+    R = np.dot(np.dot(U, W), V)
+
+    if np.sum(R.diagonal()) < 0:
+        R = np.dot(np.dot(U, W.T), V)
+    t = U[:, 2]
+    return poseRt(R, t)
+
 def calculateRotationMatrix(y, p, r):
     R_yaw = np.matrix([[np.cos(y), -np.sin(y), 0], [np.sin(y), np.cos(y), 0], [0, 0, 1]])
     R_pitch = np.matrix([[np.cos(p), 0, np.sin(p)], [0, 1, 0], [-np.sin(p), 0, np.cos(p)]])

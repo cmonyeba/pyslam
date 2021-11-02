@@ -15,15 +15,16 @@ class Slam:
         self.W, self.H = W, H
         self.K = K
         
-    def processFrame(self, frame, Rt):
+    def processFrame(self, frame):
         
         #Verify that the frame shape is correct and create KeyFrame object
         assert frame.shape[:2] == (self.H, self.W)
-        frame =  KeyFrame(frame, self.map, self.K)
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        keyframe =  KeyFrame(gray, self.map, self.K)
         
         #Makes sure it is not the first frame
         #The most recent frame and previous frame are set as f1 and f2
-        if frame.id == 0:
+        if keyframe.id == 0:
             return  
         f1 = self.map.frames[-1]
         f2 = self.map.frames[-2]
@@ -52,13 +53,19 @@ class Slam:
         for idx, point in enumerate(pts4d):
             if not good_points4d[idx]:
                 continue
-            p = Point(point, self.map, (0, 255, 0))
+            p = Point(point, self.map, (255, 255, 255))
             p.addObservation(f1, idx1[idx])
             p.addObservation(f2, idx2[idx])
 
-        if frame.id >=4:
+        if keyframe.id != 0:
+            ret = visualize(frame, f1.kps[idx1], f2.kps[idx2])
+        
+        if keyframe.id >=4:
             self.map.optimize()
+            # ret = visualize(frame, f1.kps[idx1], f2.kps[idx2])
             # pass
+            
+        return ret
         
 if __name__ == '__main__':
     
@@ -66,11 +73,11 @@ if __name__ == '__main__':
 
     # Specify the dataset to load
     date = '2011_09_26'
-    drive = '0035'
+    drive = '0001'
 
-    # Load the data. Optionally, specify the frame range to load.
+    # Load the data. Optionally, specify the frame range to load.38
     dataset = pykitti.raw(basedir, date, drive)
-    cap = cv2.VideoCapture(-1)
+    # cap = cv2.VideoCapture(-1)
     #capture video in cap
 
     #create an SLAM instance
@@ -87,7 +94,7 @@ if __name__ == '__main__':
         # ret, frame = cap.read()
         # if ret:
             #gray-scale frame and resize
-        gray = cv2.cvtColor(np.array(frame), cv2.COLOR_BGR2GRAY)
+        
         # print(np.array(frame).shape)
             # print(frame)
         vf = dataset.oxts[i].packet.vf
@@ -119,12 +126,11 @@ if __name__ == '__main__':
         pose = np.eye(4)
         pose[:3,3] = C
         pose[:3,:3] = O
-        slam.processFrame(np.array(gray), Rt)
         
-        if i != 0:
-            visualize(np.array(frame), slam.map.frames[-1], slam.map.frames[-2])
-             
-  
+        frame = slam.processFrame(np.array(frame))
+        
+        if i != 0:    
+            cv2.imshow('annotate', frame)
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break

@@ -28,12 +28,19 @@ def triangulate2(pose1, pose2, points1, points2):
         ret[i] = vt[3]
     return ret
     
-def cvtPoint(pts):
+def homoCord(pts):
     ret = []
     for pt in pts:
         temp = np.zeros(3)
         temp[:2] = pt
         temp[2] = 1
+        ret.append(temp)
+    return np.array(ret)
+
+def unHomoCord(pts):
+    ret = []
+    for pt in pts:
+        temp = pt[:2]
         ret.append(temp)
     return np.array(ret)
 

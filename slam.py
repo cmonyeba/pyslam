@@ -4,7 +4,7 @@ import cv2
 from display import Display3D
 from point import Point
 import pykitti
-from function import calculateRotationMatrix, triangulate, cvtPoint, triangulate2
+from function import calculateRotationMatrix, homoCord, triangulate, triangulate2, unHomoCord
 from frame import KeyFrame, matchFrames
 from map import Map
 
@@ -30,8 +30,19 @@ class Slam:
         f2 = self.map.frames[-2]
         #Calculate Matches and Extrinsic Matrix (R|t relation between the two frames)
         #Returns the KPS index for matching points
+        
+        # print(f1.kps.shape)
+        # print(f1.nkps)
         idx1, idx2, Extrinsic = matchFrames(f1, f2)
-         
+        f1.nkps = homoCord(f1.nkps)
+        f2.nkps = homoCord(f2.nkps)
+        print(f1.nkps)
+        for kp1, kp2 in zip(f1.nkps, f2.nkps):
+            # print(kp1, kp2)
+            res = np.matrix(kp1) * np.asmatrix(Extrinsic[:3,:3]) * np.matrix(kp2).T
+            print(res)
+        f1.nkps = unHomoCord(f1.nkps)
+        f2.nkps = unHomoCord(f2.nkps)
         f1.pose = np.dot(Extrinsic, f2.pose)
 
         for i, idx in enumerate(idx2):
@@ -53,7 +64,7 @@ class Slam:
         for idx, point in enumerate(pts4d):
             if not good_points4d[idx]:
                 continue
-            p = Point(point, self.map, (255, 255, 255))
+            p = Point(point, self.map, (255, 46, 25))
             p.addObservation(f1, idx1[idx])
             p.addObservation(f2, idx2[idx])
 
@@ -61,7 +72,8 @@ class Slam:
             ret = visualize(frame, f1.kps[idx1], f2.kps[idx2])
         
         if keyframe.id >=4:
-            self.map.optimize()
+            # self.map.optimize()
+            pass
             # ret = visualize(frame, f1.kps[idx1], f2.kps[idx2])
             # pass
             
@@ -70,7 +82,7 @@ class Slam:
 if __name__ == '__main__':
     
     basedir = '/home/sebaw/kitti'
-
+ 
     # Specify the dataset to load
     date = '2011_09_26'
     drive = '0001'
@@ -131,13 +143,12 @@ if __name__ == '__main__':
         
         if i != 0:    
             cv2.imshow('annotate', frame)
-
+            disp3d.paint(slam.map)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
-        else:
-            print('no frame')
-        disp3d.paint(slam.map)    
-    # When everything done, release the capture
+        
+ # When everything done, release the capture
     
-    cap.release()
+    print('no frame')
+    # cap.release()
     cv2.destroyAllWindows()

@@ -58,9 +58,9 @@ def matchFrames(f1, f2):
                         max_trials = 100
                     )
 
+    # Hartley & Zissserman approach.
     Rt = calc_pose_matrices(model)
 
-    # print('FEATUREEXTRACTOR: matches: {}'.format(len(ret)))
     return idx1[inliers], idx2[inliers], Rt
 
 
